@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    def gitCommitId = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+    // def gitCommitId = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
 
     // environment {
     //     DOCKER_HUB_CREDENTIALS = credentials('docker-hub')
@@ -20,7 +20,7 @@ pipeline {
         
         stage('Test') {
             steps {
-                 sh "docker run my-go-app:${gitCommitId} go test ./..."
+                 sh "docker run my-go-app:${env.BUILD_NUMBER} go test ./..."
             }
         }
         
@@ -34,7 +34,7 @@ pipeline {
                     // }
                     withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
                         sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
-                        sh "docker push shanem/spring-petclinic:${gitCommitId}"
+                        sh "docker push shanem/spring-petclinic:${env.BUILD_NUMBER}"
                     }
                 }
             }
