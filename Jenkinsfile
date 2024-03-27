@@ -1,35 +1,38 @@
 pipeline {
     agent any
-    
+
+    environment {
+        DOCKER_HUB_CREDENTIALS = credentials('docker-hub')
+    }
+
     stages {
+        // stage('Preparation'){
+        //     steps{
+        //         checkout scm
+        //     }
+        // }
         stage('Build') {
             steps {
-                echo 'BUILD EXECUTION STARTED'
-                // script {
-                //     sh 'docker build --target builder -t my-golang-app .'
-                // }
+                sh 'docker build -t my-go-app .'
             }
         }
         
         stage('Test') {
             steps {
-                echo 'UNIT TEST EXECUTION STARTED'
-                // script {
-                //     sh 'docker build --target tester -t my-golang-app .'
-                //     sh 'docker run --rm my-golang-app tester'
-                // }
+                 sh 'docker run my-go-app go test ./...'
             }
         }
         
-        // stage('Push to Docker Hub') {
-        //     steps {
-        //         script {
-        //            withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'dockerhubPassword', usernameVariable: 'dockerhubUser')]) {
-        //             sh "docker login -u ${env.dockerhubUser} -p ${env.dockerhubPassword}"
-        //             sh 'docker push danilorapaic00/test-jenx'
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_HUB_CREDENTIALS) {
+                        def gitCommitId = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                        sh 'docker tag my-go-app danilorapaic00/test-jenx:${gitCommitId}'
+                        sh 'docker push danilorapaic00/test-jenx:${gitCommitId}'
+                    }
+                }
+            }
+        }
     }
 }

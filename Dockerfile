@@ -1,4 +1,4 @@
-FROM golang:latest as builder
+FROM golang:1.16-alpine as builder
 
 WORKDIR /app
 
@@ -9,11 +9,11 @@ COPY go.mod .
 
 COPY . .
 
-RUN go build -o main
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 
-FROM builder as tester
+# FROM builder as tester
 
-RUN go test -v ./...
+# RUN go test -v ./...
 
 FROM alpine:latest
 
