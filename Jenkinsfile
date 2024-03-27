@@ -7,11 +7,11 @@ pipeline {
     // }
 
     stages {
-        // stage('Preparation'){
-        //     steps{
-        //         checkout scm
-        //     }
-        // }
+        stage('Preparation'){
+            steps{
+                checkout scm
+            }
+        }
         stage('Build') {
             steps {
                 sh "docker build -t my-go-app ."
