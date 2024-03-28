@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Preparation'){
+            steps{
+                checkout scm
+            }
+        }
+        stage('Build') {
+            steps {
+                sh "docker build --target builder -t go-jenkins-pipeline ."
+            }
+        }
+        
+        stage('Test') {
+            steps {
+                 sh "docker run go-jenkins-pipeline go test ./..."
+            }
+        }
+        
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    // docker.withRegistry('https://index.docker.io/v1/', DOCKER_HUB_CREDENTIALS) {
+                        // def gitCommitId = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                        // sh 'docker tag my-go-app danilorapaic00/test-jenx:${gitCommitId}'
+                    //     sh 'docker push danilorapaic00/test-jenx:${gitCommitId}'
+                    // }
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
+                        sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
+                        sh 'docker tag go-jenkins-pipeline danilorapaic00/test-jenx:${env.BUILD_NUMBER}'
+                        sh "docker push danilorapaic00/go-jenkins-pipeline:${env.BUILD_NUMBER}"
+                    }
+                }
+            }
+        }
+    }
+}
